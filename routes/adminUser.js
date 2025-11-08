@@ -1,11 +1,15 @@
 const express = require("express");
 const router = express.Router();
-const bcrypt = require("bcrypt");
 const User = require("../models/connection");
+const bcrypt = require("bcrypt");
 const { ensureAdmin } = require("../middleware/auth");
 
-router.get("/",ensureAdmin, async (req, res) => {
+router.get("/", ensureAdmin, async (req, res) => {
   const q = req.query.q || "";
+  const page = parseInt(req.query.page) || 1; // current page number
+  const limit = 10; // users per page
+  const skip = (page - 1) * limit;
+
   const filter = q
     ? {
         $or: [
@@ -14,29 +18,45 @@ router.get("/",ensureAdmin, async (req, res) => {
         ],
       }
     : {};
-  const users = await User.find(filter).sort({ createdAt: -1 }).lean();
-  res.render("admin-users", { users, q });
+
+  const totalUsers = await User.countDocuments(filter);
+  const totalPages = Math.ceil(totalUsers / limit);
+
+  const users = await User.find(filter)
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(limit)
+    .lean();
+  const startIndex = (page - 1) * limit;
+  res.render("admin-users", {
+    users,
+    q,
+    currentPage: page,
+    totalPages,
+    startIndex,
+  });
 });
 
-router.get("/new",ensureAdmin, (req, res) => {
+router.get("/new", ensureAdmin, (req, res) => {
   res.render("admin-user-form", { action: "/admin/users", method: "post" });
 });
 
-router.post("/",ensureAdmin, async (req, res) => {
+router.post("/", ensureAdmin, async (req, res) => {
   try {
     const { name, email, password } = req.body;
     if (!name || !email || !password) {
       return res.render("admin-user-form", {
-        error: "all fields are required!!",
+        error: "all fields required!!",
         action: "/admin/users",
         method: "post",
       });
     }
-    const existed = await User.findOne({ email });
-    if (existed) {
+
+    const exsisted = await User.findOne({ email });
+    if (exsisted) {
       return res.render("admin-user-form", {
-        error: "email alredy exists",
-        action: "/admin/users",
+        error: "email already exsist",
+        action: "admin/users",
         method: "post",
       });
     }
@@ -47,7 +67,7 @@ router.post("/",ensureAdmin, async (req, res) => {
     console.error(error);
     res.render("admin-user-form", {
       error: "server error",
-      action: "/admin/users",
+      action: "admin/users",
       method: "post",
     });
   }
@@ -56,16 +76,16 @@ router.post("/",ensureAdmin, async (req, res) => {
 router.get("/:id/edit", ensureAdmin, async (req, res) => {
   const user = await User.findById(req.params.id);
   if (!user) {
-    return res.redirect("/admin/users");
+    return res.redirect("admin/users");
   }
   res.render("admin-user-form", {
     user,
-    action: `/admin/users/${user._id}?_method=PUT`,
+    action: `/admin/users/${user._id}?_method=put`,
     method: "post",
   });
 });
 
-router.put("/:id",ensureAdmin, async (req, res) => {
+router.put("/:id", ensureAdmin, async (req, res) => {
   try {
     const { name, email, password } = req.body;
     const update = { name, email };
@@ -80,7 +100,7 @@ router.put("/:id",ensureAdmin, async (req, res) => {
   }
 });
 
-router.delete("/:id",ensureAdmin, async (req, res) => {
+router.delete("/:id", ensureAdmin, async (req, res) => {
   try {
     await User.findByIdAndDelete(req.params.id);
     res.redirect("/admin/users");

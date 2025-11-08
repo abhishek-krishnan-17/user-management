@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const session = require('express-session');
 const methodOverride = require('method-override')
 const cookieParser = require('cookie-parser');
+const hbs = require('hbs');
 const loginRoute = require("./routes/login");
 const signupRoute = require('./routes/signup');
 const homeRoute = require('./routes/home');
@@ -18,6 +19,23 @@ app.use(methodOverride('_method'))
 app.use(cookieParser())
 app.set("views", path.join(__dirname ,"views"));
 app.set("view engine", "hbs");
+
+// Register Handlebars helpers
+
+hbs.registerHelper("increment", (value) => parseInt(value) + 1);
+hbs.registerHelper("add",(a,b) => a + b)
+hbs.registerHelper("decrement", (value) => parseInt(value) - 1);
+hbs.registerHelper("gt", (a, b) => a > b);
+hbs.registerHelper("lt", (a, b) => a < b);
+
+hbs.registerHelper("pagination", (totalPages, currentPage) => {
+  const pages = [];
+  for (let i = 1; i <= totalPages; i++) {
+    pages.push({ number: i, active: i === currentPage });
+  }
+  return pages;
+});
+
 
 app.use(session({
   secret : "abhishek_17",
