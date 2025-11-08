@@ -23,17 +23,28 @@ app.set("view engine", "hbs");
 // Register Handlebars helpers
 
 hbs.registerHelper("increment", (value) => parseInt(value) + 1);
-hbs.registerHelper("add",(a,b) => a + b)
 hbs.registerHelper("decrement", (value) => parseInt(value) - 1);
+hbs.registerHelper("add", (a, b) => a + b);
+hbs.registerHelper("subtract", (a, b) => a - b);
 hbs.registerHelper("gt", (a, b) => a > b);
 hbs.registerHelper("lt", (a, b) => a < b);
+hbs.registerHelper("eq", (a, b) => a === b);
 
+// Pagination helpers
 hbs.registerHelper("pagination", (totalPages, currentPage) => {
   const pages = [];
   for (let i = 1; i <= totalPages; i++) {
     pages.push({ number: i, active: i === currentPage });
   }
   return pages;
+});
+
+hbs.registerHelper("range", (from, to) => {
+  const range = [];
+  for (let i = from; i <= to; i++) {
+    range.push(i);
+  }
+  return range;
 });
 
 
