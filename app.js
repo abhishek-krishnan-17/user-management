@@ -1,0 +1,42 @@
+const express = require("express");
+const path = require("path");
+const mongoose = require('mongoose');
+const session = require('express-session');
+const methodOverride = require('method-override')
+const cookieParser = require('cookie-parser');
+const loginRoute = require("./routes/login");
+const signupRoute = require('./routes/signup');
+const homeRoute = require('./routes/home');
+const adminRoute = require('./routes/adminAuth');
+const adminUserRoute = require('./routes/adminUser');
+
+const app = express();
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(methodOverride('_method'))
+app.use(cookieParser())
+app.set("views", path.join(__dirname ,"views"));
+app.set("view engine", "hbs");
+
+app.use(session({
+  secret : "abhishek_17",
+  resave : false,
+  saveUninitialized : false,
+}))
+
+mongoose.connect("mongodb://127.0.0.1:27017/admindata")
+  .then(() => console.log("✅ MongoDB connected successfully"))
+  .catch(err => console.error("❌ MongoDB connection error:", err));
+
+
+app.use('/', loginRoute);
+app.use('/',signupRoute);
+app.use('/',homeRoute)
+app.use('/admin',adminRoute);
+app.use('/admin/users',adminUserRoute)
+
+const PORT = 3000;
+app.listen(PORT, () => {
+  console.log("server running successfully");
+});
