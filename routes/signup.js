@@ -23,7 +23,7 @@ router.post("/signup", async (req, res) => {
         email,
       });
 
-    const existed = await User.findOne({ email });
+    const existed = await User.findOne({ email});
     if (existed)
       return res.render("signup", { error: "Email already registered", name });
 
@@ -31,14 +31,11 @@ router.post("/signup", async (req, res) => {
     const user = new User({ name, email, password: hashed });
     await user.save();
 
-    
     res.redirect("/login");
   } catch (err) {
     console.error(err);
     res.render("signup", { error: "Server error" });
   }
 });
-
-
 
 module.exports = router;

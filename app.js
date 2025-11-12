@@ -1,23 +1,23 @@
 const express = require("express");
 const path = require("path");
-const mongoose = require('mongoose');
-const session = require('express-session');
-const methodOverride = require('method-override')
-const cookieParser = require('cookie-parser');
-const hbs = require('hbs');
+const mongoose = require("mongoose");
+const session = require("express-session");
+const methodOverride = require("method-override");
+const cookieParser = require("cookie-parser");
+const hbs = require("hbs");
 const loginRoute = require("./routes/login");
-const signupRoute = require('./routes/signup');
-const homeRoute = require('./routes/home');
-const adminRoute = require('./routes/adminAuth');
-const adminUserRoute = require('./routes/adminUser');
+const signupRoute = require("./routes/signup");
+const homeRoute = require("./routes/home");
+const adminRoute = require("./routes/adminAuth");
+const adminUserRoute = require("./routes/adminUser");
 
 const app = express();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(methodOverride('_method'))
-app.use(cookieParser())
-app.set("views", path.join(__dirname ,"views"));
+app.use(methodOverride("_method"));
+app.use(cookieParser());
+app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "hbs");
 
 // Register Handlebars helpers
@@ -47,23 +47,36 @@ hbs.registerHelper("range", (from, to) => {
   return range;
 });
 
+app.use(
+  session({
+    secret: "abhishek_17",
+    resave: false,
+    saveUninitialized: false,
+  })
+);
 
-app.use(session({
-  secret : "abhishek_17",
-  resave : false,
-  saveUninitialized : false,
-}))
-
-mongoose.connect("mongodb://127.0.0.1:27017/admindata")
+mongoose
+  .connect("mongodb://127.0.0.1:27017/admindata")
   .then(() => console.log("✅ MongoDB connected successfully"))
-  .catch(err => console.error("❌ MongoDB connection error:", err));
+  .catch((err) => console.error("❌ MongoDB connection error:", err));
 
+// Redirect root (/) to login page
+app.get("/", (req, res) => {
+  res.redirect("/login");
+});
 
-app.use('/', loginRoute);
-app.use('/',signupRoute);
-app.use('/',homeRoute)
-app.use('/admin',adminRoute);
-app.use('/admin/users',adminUserRoute)
+app.use("/", loginRoute);
+app.use("/", signupRoute);
+app.use("/", homeRoute);
+app.use("/admin", adminRoute);
+app.use("/admin/users", adminUserRoute);
+
+// Handle 404 - Page Not Found
+app.use((req, res) => {
+  res.status(404).render("404", {
+    title: "Page Not Found",
+  });
+});
 
 const PORT = 3000;
 app.listen(PORT, () => {

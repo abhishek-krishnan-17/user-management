@@ -30,9 +30,17 @@ router.post("/login", async (req, res) => {
 
 router.get("/logout", (req, res) => {
   req.session.destroy((err) => {
+    if (err) {
+      console.error("❌ Session destroy error:", err);
+      // Redirect to your existing 404 page
+      return res.render("404");
+    }
+
+    // If no error, clear cookie and redirect normally
     res.clearCookie("connect.sid");
     res.redirect("/login");
   });
 });
+
 
 module.exports = router;

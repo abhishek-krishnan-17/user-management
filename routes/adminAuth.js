@@ -3,6 +3,10 @@ const Admin = require("../models/Admin");
 const bcrypt = require("bcrypt");
 const router = express.Router();
 
+router.get("/", (req, res) => {
+  res.redirect("/admin/login");
+});
+
 router.get("/login", (req, res) => {
   res.render("admin-login");
 });
